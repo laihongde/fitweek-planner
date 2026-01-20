@@ -29,7 +29,7 @@ export default function WeekSummary({
           </Typography.Text>
           <Progress percent={pct} />
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            Progress is computed from workout items (0~100%).
+            進度目前完成計算 (0~100%)
           </Typography.Text>
         </Space>
       ) : (

@@ -1,0 +1,337 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+:root {
+  --ag-black: #24232d;
+  --ag-green: #b8ff12;
+  --ag-yellow: #fff544;
+  --ag-orange: #ff972e;
+  --ag-pink: #ea37d5;
+  --ag-blue: #5e26e4;
+}
+
+/* root wrapper：不干涉你頁面 layout，只控制這塊 */
+.ag-root {
+  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    "Apple Color Emoji", "Segoe UI Emoji";
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* 你原本的 grid：5 欄 2 列 */
+.ag-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr 1fr 1.3fr;;
+  grid-template-rows: 1fr 1fr;
+
+  /* 讓四個區塊緊密 */
+  gap: 0;
+
+  /* 實務上放在卡片上方會更好看：加一點圓角裁切 */
+  border-radius: 14px;
+  overflow: hidden;
+
+  /* 不要太大，避免擠爆卡片；也保持你原本 "vw" 風格 */
+  width: min(520px, 100%);
+}
+
+/* container 基本設定 */
+.ag-container {
+  display: grid;
+  overflow: hidden;
+  border: 0.5px solid;
+}
+
+/* ========== 依照你原本 nth-child 分配位置與動畫 ========== */
+
+/* 1: 上排大文字（跨 1~4） */
+.ag-container:nth-child(1) {
+  grid-column: 1/5;
+  grid-row: 1/2;
+}
+
+.ag-container:nth-child(1) .ag-text {
+  transform-origin: top center;
+}
+
+.ag-container:nth-child(1) .ag-text:nth-child(1) {
+  background-color: var(--ag-green);
+  animation-name: ag-slide-up-1;
+}
+
+.ag-container:nth-child(1) .ag-text:nth-child(2) {
+  background-color: var(--ag-yellow);
+  animation-name: ag-slide-up-2;
+}
+
+/* 2: 右上兩顆圓（第 5 欄） */
+.ag-container:nth-child(2) {
+  grid-column: 5/6;
+  grid-row: 1/2;
+}
+
+.ag-container:nth-child(2) .ag-circle {
+  transform-origin: left center;
+}
+
+.ag-container:nth-child(2) .ag-circle:nth-child(1) {
+  background-color: var(--ag-pink);
+  animation-name: ag-slide-right-1;
+}
+
+.ag-container:nth-child(2) .ag-circle:nth-child(2) {
+  background-color: var(--ag-orange);
+  animation-name: ag-slide-right-2;
+}
+
+/* 3: 左下兩顆圓（第 1 欄） */
+.ag-container:nth-child(3) {
+  grid-column: 1/2;
+  grid-row: 2/3;
+}
+
+.ag-container:nth-child(3) .ag-circle {
+  transform-origin: right center;
+}
+
+.ag-container:nth-child(3) .ag-circle:nth-child(1) {
+  background-color: var(--ag-orange);
+  animation-name: ag-slide-left-1;
+}
+
+.ag-container:nth-child(3) .ag-circle:nth-child(2) {
+  background-color: var(--ag-green);
+  animation-name: ag-slide-left-2;
+}
+
+/* 4: 下排大文字（跨 2~5） */
+.ag-container:nth-child(4) {
+  grid-column: 2/6;
+  grid-row: 2/3;
+}
+
+.ag-container:nth-child(4) .ag-text {
+  transform-origin: bottom center;
+}
+
+.ag-container:nth-child(4) .ag-text:nth-child(1) {
+  background-color: var(--ag-blue);
+  animation-name: ag-slide-down-1;
+}
+
+.ag-container:nth-child(4) .ag-text:nth-child(2) {
+  background-color: var(--ag-pink);
+  animation-name: ag-slide-down-2;
+}
+
+/* ========== Text / Circle：同格疊放（你要的效果） ========== */
+
+.ag-text {
+  grid-area: 1/1/2/2;
+  padding: 0 clamp(30px, 1.5vw, 20px);
+
+  /* 你原本是 12vw，我保留但加 clamp 讓小螢幕不卡死、大螢幕不爆 */
+  font-size: clamp(24px, 9.5vw, 56px);
+  font-family: 'Noto Serif TC', serif;
+
+  text-transform: uppercase;
+  font-weight: 600;
+
+  /* 重要：避免某些字型 line-height 把格子撐開 */
+  line-height: 1;
+
+  animation-duration: 6s;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+  animation-iteration-count: infinite;
+
+  /* 讓文字垂直居中更穩（不改變你動畫） */
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.ag-circle {
+  grid-area: 1/1/2/2;
+  display: grid;
+  place-items: center;
+
+  animation-duration: 6s;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+  animation-iteration-count: infinite;
+}
+
+.ag-circle::after {
+  content: "";
+  width: clamp(24px, 9.5vw, 56px);
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  border: 1px solid;
+  background-color: var(--ag-black);
+}
+
+/* ========== keyframes：原封不動（只改了名稱避免撞到全域） ========== */
+
+@keyframes ag-slide-up-1 {
+  0% {
+    transform: translateY(100%) scaleY(1);
+  }
+
+  25%,
+  50% {
+    transform: translateY(0%) scaleY(1);
+  }
+
+  75%,
+  100% {
+    transform: translateY(0%) scaleY(0);
+  }
+}
+
+@keyframes ag-slide-up-2 {
+  0% {
+    transform: translateY(0) scaleY(1);
+  }
+
+  25%,
+  50% {
+    transform: translateY(0) scaleY(0);
+  }
+
+  50.001% {
+    transform: translateY(100%) scaleY(1);
+  }
+
+  75% {
+    transform: translateY(0) scaleY(1);
+  }
+
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes ag-slide-down-1 {
+  0% {
+    transform: translateY(-100%) scaleY(1);
+  }
+
+  25%,
+  50% {
+    transform: translateY(0%) scaleY(1);
+  }
+
+  75%,
+  100% {
+    transform: translateY(0%) scaleY(0);
+  }
+}
+
+@keyframes ag-slide-down-2 {
+  0% {
+    transform: translateY(0) scaleY(1);
+  }
+
+  25%,
+  50% {
+    transform: translateY(0) scaleY(0);
+  }
+
+  50.001% {
+    transform: translateY(-100%) scaleY(1);
+  }
+
+  75% {
+    transform: translateY(0) scaleY(1);
+  }
+
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes ag-slide-right-1 {
+  0% {
+    transform: translateX(100%) scaleX(1);
+  }
+
+  25%,
+  50% {
+    transform: translateX(0%) scaleX(1);
+  }
+
+  75%,
+  100% {
+    transform: translateX(0%) scaleX(0);
+  }
+}
+
+@keyframes ag-slide-right-2 {
+  0% {
+    transform: translateX(0) scaleX(1);
+  }
+
+  25%,
+  50% {
+    transform: translateX(0) scaleX(0);
+  }
+
+  50.001% {
+    transform: translateX(100%) scaleX(1);
+  }
+
+  75% {
+    transform: translateX(0) scaleX(1);
+  }
+
+  100% {
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+@keyframes ag-slide-left-1 {
+  0% {
+    transform: translateX(-100%) scaleX(1);
+  }
+
+  25%,
+  50% {
+    transform: translateX(0%) scaleX(1);
+  }
+
+  75%,
+  100% {
+    transform: translateX(0%) scaleX(0);
+  }
+}
+
+@keyframes ag-slide-left-2 {
+  0% {
+    transform: translateX(0) scaleX(1);
+  }
+
+  25%,
+  50% {
+    transform: translateX(0) scaleX(0);
+  }
+
+  50.001% {
+    transform: translateX(-100%) scaleX(1);
+  }
+
+  75% {
+    transform: translateX(0) scaleX(1);
+  }
+
+  100% {
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+/* 尊重使用者偏好：減少動態效果 */
+@media (prefers-reduced-motion: reduce) {
+
+  .ag-text,
+  .ag-circle {
+    animation: none !important;
+  }
+}

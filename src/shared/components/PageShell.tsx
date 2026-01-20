@@ -22,12 +22,22 @@ export default function PageShell({
           justifyContent: "space-between",
         }}
       >
-        <Typography.Title level={4} style={{ margin: 0, color: "#fff" }}>
+        <Typography.Title level={4} style={{ margin: 0, color: "#fff", fontSize: "clamp(15px, 4.2vw, 20px)" }}>
           {title}
         </Typography.Title>
 
         <Space>
-          <Typography.Text style={{ color: "#fff" }}>
+          <Typography.Text
+            ellipsis={{ tooltip: false }}
+            style={{
+              color: "#fff",
+              maxWidth: "20vw",      // 你想讓它最多佔多少就調這個
+              minWidth: 0,           // ✅ 關鍵：允許在 flex 裡縮
+              display: "block",      // ✅ 讓寬度約束生效（比 inline 好）
+              direction: "ltr",      // ✅ 保證從左到右
+              textAlign: "left",     // ✅ 保證顯示開頭
+            }}
+          >
             {user?.displayName ?? "Unknown"}
           </Typography.Text>
           <Button onClick={logout}>Logout</Button>

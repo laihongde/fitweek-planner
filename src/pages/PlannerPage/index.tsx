@@ -24,7 +24,7 @@ export default function PlannerPage() {
   const uid = user!.uid;
 
   const screens = useBreakpoint();
-  const isMobile = !screens.md; // md 以下視為手機/小平板
+  const isMobile = !screens.md;
 
   const {
     year,
@@ -101,7 +101,7 @@ export default function PlannerPage() {
   };
 
   return (
-    <PageShell title="FitWeek Planner">
+    <PageShell title="畫山論健">
       {/* 手機：上方工具列 */}
       {isMobile && (
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>

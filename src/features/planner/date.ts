@@ -1,12 +1,6 @@
 import dayjs from "dayjs";
 
-/**
- * ISO week algorithm (no dayjs plugins required)
- * ISO week starts Monday, Week 1 is the week with Jan 4th.
- */
-
 function toUTCDate(y: number, m: number, d: number) {
-  // m: 1..12
   return new Date(Date.UTC(y, m - 1, d));
 }
 
@@ -29,8 +23,7 @@ function formatISODateUTC(dt: Date) {
 }
 
 function getISODayUTC(dt: Date) {
-  // Monday=1..Sunday=7
-  const day = dt.getUTCDay(); // 0..6 (Sun..Sat)
+  const day = dt.getUTCDay();
   return day === 0 ? 7 : day;
 }
 
@@ -38,15 +31,12 @@ export function getISOWeekInfoFromDate(dateISO: string): {
   isoYear: number;
   isoWeek: number;
 } {
-  // dateISO: YYYY-MM-DD
   const d = new Date(`${dateISO}T00:00:00Z`);
-  // shift date to Thursday of this week
   const isoDay = getISODayUTC(d);
   const thursday = addDaysUTC(d, 4 - isoDay);
 
   const isoYear = thursday.getUTCFullYear();
 
-  // week 1 is the week with Jan 4
   const jan4 = toUTCDate(isoYear, 1, 4);
   const jan4IsoDay = getISODayUTC(jan4);
   const week1Monday = addDaysUTC(jan4, -(jan4IsoDay - 1));
@@ -67,17 +57,14 @@ export function weekKeyFromDate(d: dayjs.Dayjs) {
 }
 
 export function getWeekRangeFromWeekKey(weekKey: string) {
-  // weekKey: YYYY-Wxx
   const [yStr, wStr] = weekKey.split("-W");
   const isoYear = Number(yStr);
   const isoWeek = Number(wStr);
 
-  // week 1 Monday
   const jan4 = toUTCDate(isoYear, 1, 4);
   const jan4IsoDay = getISODayUTC(jan4);
   const week1Monday = addDaysUTC(jan4, -(jan4IsoDay - 1));
 
-  // target week Monday
   const start = addDaysUTC(week1Monday, (isoWeek - 1) * 7);
   const end = addDaysUTC(start, 6);
 
@@ -90,13 +77,12 @@ export function getWeekRangeFromWeekKey(weekKey: string) {
 }
 
 export function weeksInMonth(year: number, month: number) {
-  // month: 1..12
   const first = toUTCDate(year, month, 1);
   const last = toUTCDate(
     year,
     month,
     new Date(Date.UTC(year, month, 0)).getUTCDate(),
-  ); // last day of month
+  );
 
   const set = new Map<
     string,

@@ -34,7 +34,7 @@ export default function WeekSelector({
 
   return (
     <Card
-      title="Pick a week"
+      title="選擇週次"
       size="small"
       bodyStyle={{ padding: compact ? 12 : 16 }}
     >
