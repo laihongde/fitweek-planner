@@ -15,7 +15,7 @@ export default function WeekSummary({
   return (
     <Card
       size="small"
-      title="Week Overview"
+      title="本週概覽"
       extra={
         <Button onClick={onOpenCopy} disabled={!plan}>
           Copy to other weeks

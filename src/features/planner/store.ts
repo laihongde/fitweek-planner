@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import type { WeekPlan, WeekKey, WorkoutItem } from "./types";
 import { getWeekPlan, upsertWeekPlan } from "./repo/plannerRepo";
-import { getWeekRangeFromWeekKey, isoWeekDates } from "./date";
+import { getWeekRangeFromWeekKey, isoWeekDates, weekKeyFromDate } from "./date";
 
 type PlannerState = {
   year: number;
@@ -28,7 +28,17 @@ type PlannerState = {
     month: number,
   ) => Promise<WeekPlan>;
 
-  addItem: (uid: string, dayISO: string) => Promise<void>;
+  addItem: (
+    uid: string,
+    dayISO: string,
+    payload: {
+      name: string;
+      sets: number;
+      reps: number;
+      weight: number;
+      note?: string;
+    },
+  ) => Promise<string | null>;
   updateItem: (uid: string, dayISO: string, item: WorkoutItem) => Promise<void>;
   deleteItem: (uid: string, dayISO: string, itemId: string) => Promise<void>;
   setItemProgress: (
@@ -45,10 +55,7 @@ function defaultYearMonth() {
 }
 
 function defaultWeekKey() {
-  const now = dayjs();
-  const y = now.isoWeekYear();
-  const w = String(now.isoWeek()).padStart(2, "0");
-  return `${y}-W${w}`;
+  return weekKeyFromDate(dayjs());
 }
 
 export const usePlannerStore = create<PlannerState>((set, get) => ({
@@ -94,27 +101,34 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     return plan;
   },
 
-  addItem: async (uid, dayISO) => {
+  addItem: async (uid, dayISO, payload) => {
     const plan = get().activePlan;
-    if (!plan) return;
+    if (!plan) return null;
+
+    const name = payload.name.trim();
+    if (!name) return null;
 
     const next = structuredClone(plan);
     const day = next.days.find((d) => d.dateISO === dayISO);
-    if (!day) return;
+    if (!day) return null;
+
+    const id = uuidv4();
 
     day.items.push({
-      id: uuidv4(),
-      name: "New Exercise",
-      sets: 3,
-      reps: 10,
-      weight: 0,
-      note: "",
+      id,
+      name,
+      sets: payload.sets,
+      reps: payload.reps,
+      weight: payload.weight,
+      note: payload.note ?? "",
       progress: 0,
     });
 
     next.updatedAt = Date.now();
     await upsertWeekPlan(next);
     set({ activePlan: next });
+
+    return id;
   },
 
   updateItem: async (uid, dayISO, item) => {

@@ -29,7 +29,7 @@ export default function CopyWeekModal({
   const checkboxOptions = useMemo(
     () =>
       weekOptions.map((w) => ({
-        label: `Week ${String(w.weekNumber).padStart(2, "0")} (${w.startISO}~${w.endISO})`,
+        label: `第 ${String(w.weekNumber).padStart(2, "0")} 週 (${w.startISO}~${w.endISO})`,
         value: w.weekKey,
         disabled: w.weekKey === sourceWeekKey,
       })),
@@ -38,11 +38,11 @@ export default function CopyWeekModal({
 
   return (
     <Modal
-      title="Copy this week plan"
+      title="複製週計畫"
       open={open}
       onCancel={onClose}
       onOk={() => onConfirm(targets, mode, resetProgress)}
-      okText="Copy"
+      okText="複製"
     >
       <Space direction="vertical" style={{ width: "100%" }}>
         <Typography.Text>

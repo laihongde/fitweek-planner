@@ -8,3 +8,10 @@ body,
 * {
   box-sizing: border-box;
 }
+
+/* 手機：讓一些欄位吃滿寬度 */
+@media (max-width: 768px) {
+  .mobile-full {
+    width: 100% !important;
+  }
+}
