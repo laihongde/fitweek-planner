@@ -76,7 +76,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     set({ activePlan: created });
   },
 
-  ensureWeek: async (uid, wk, year, month) => {
+  ensureWeek: async (uid, wk, _, month) => {
     const meta = getWeekRangeFromWeekKey(wk);
     const days = isoWeekDates(wk).map((d) => ({
       dateISO: d.dateISO,
@@ -101,7 +101,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     return plan;
   },
 
-  addItem: async (uid, dayISO, payload) => {
+  addItem: async (_, dayISO, payload) => {
     const plan = get().activePlan;
     if (!plan) return null;
 
@@ -131,7 +131,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     return id;
   },
 
-  updateItem: async (uid, dayISO, item) => {
+  updateItem: async (_, dayISO, item) => {
     const plan = get().activePlan;
     if (!plan) return;
 
@@ -148,7 +148,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     set({ activePlan: next });
   },
 
-  deleteItem: async (uid, dayISO, itemId) => {
+  deleteItem: async (_, dayISO, itemId) => {
     const plan = get().activePlan;
     if (!plan) return;
 
@@ -163,7 +163,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     set({ activePlan: next });
   },
 
-  setItemProgress: async (uid, dayISO, itemId, progress) => {
+  setItemProgress: async (_, dayISO, itemId, progress) => {
     const plan = get().activePlan;
     if (!plan) return;
 
