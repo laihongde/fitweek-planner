@@ -5,7 +5,7 @@ export default function AnimatedGrid() {
     <div className="ag-root" aria-hidden="true">
       <div className="ag-grid">
         <div className="ag-container">
-          <p className="ag-text">畫山定週</p>
+          <p className="ag-text">不是很健</p>
           <p className="ag-text">一週一畫</p>
         </div>
 
@@ -20,7 +20,7 @@ export default function AnimatedGrid() {
         </div>
 
         <div className="ag-container">
-          <p className="ag-text">論健成勢</p>
+          <p className="ag-text">但有在練</p>
           <p className="ag-text">隨練即調</p>
         </div>
       </div>
