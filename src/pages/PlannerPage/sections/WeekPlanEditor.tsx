@@ -241,24 +241,25 @@ export default function WeekPlanEditor({
           return (
             <div key={day.dateISO}>
               <Space direction="vertical" style={{ width: "100%" }} size={0}>
-                <Typography.Text strong>
-                  {weekdayLabel(day.weekday)} — {day.dateISO}
-                </Typography.Text>
+                  <Space align="center" wrap size={"large"}>
+                    <Typography.Text strong>
+                      {weekdayLabel(day.weekday)} — {day.dateISO}
+                    </Typography.Text>
+                    <Checkbox
+                      checked={dayDone}
+                      disabled={!dayHasItems}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setDayItemsProgress(uid, day.dateISO, checked ? 100 : 0);
+                      }}
+                    >
+                      全部完成
+                    </Checkbox>
+                  </Space>
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                   {isMobile ? "點選卡片可在下方抽屜中編輯。" : "可直接編輯表格中的任一列。"}
                 </Typography.Text>
               </Space>
-
-              <Checkbox
-                checked={dayDone}
-                disabled={!dayHasItems}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setDayItemsProgress(uid, day.dateISO, checked ? 100 : 0);
-                }}
-              >
-                完成
-              </Checkbox>
 
               {/* 新增表單：手機自動換行 */}
               <div style={{ marginTop: 12 }}>
