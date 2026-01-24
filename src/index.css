@@ -18,4 +18,8 @@ body {
   .mobile-full {
     width: 100% !important;
   }
+
+  .mobile-header {
+    padding: 0 10px;
+  }
 }

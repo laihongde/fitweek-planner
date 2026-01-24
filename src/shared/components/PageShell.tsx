@@ -16,6 +16,7 @@ export default function PageShell({
   return (
     <Layout style={{ height: "100%" }}>
       <Header
+        className="mobile-header"
         style={{
           display: "flex",
           alignItems: "center",

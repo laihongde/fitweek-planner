@@ -53,7 +53,7 @@ export default function WeekPlanEditor({
   uid: string;
   plan: WeekPlan | null;
 }) {
-  const { addItem, updateItem, deleteItem, setItemProgress } = usePlannerStore();
+  const { addItem, updateItem, deleteItem, setItemProgress, setDayItemsProgress } = usePlannerStore();
   const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
@@ -70,13 +70,13 @@ export default function WeekPlanEditor({
       {
         title: "動作",
         dataIndex: "name",
-        width: 220,
+        width: 150,
         formItemProps: { rules: [{ required: true, message: "請輸入鍛鍊動作" }] },
       },
-      { title: "組數", dataIndex: "sets", valueType: "digit", width: 90 },
-      { title: "次數", dataIndex: "reps", valueType: "digit", width: 90 },
-      { title: "重量", dataIndex: "weight", valueType: "digit", width: 110 },
-      { title: "備註", dataIndex: "note", ellipsis: true },
+      { title: "組數", dataIndex: "sets", valueType: "digit", width: 80 },
+      { title: "次數", dataIndex: "reps", valueType: "digit", width: 80 },
+      { title: "重量", dataIndex: "weight", valueType: "digit", width: 90 },
+      { title: "備註", dataIndex: "note", width: 150},
     ],
     []
   );
@@ -235,6 +235,8 @@ export default function WeekPlanEditor({
           ];
 
           const draft = ensureDraft(day.dateISO);
+          const dayHasItems = day.items.length > 0;
+          const dayDone = dayHasItems && day.items.every((it) => (it.progress ?? 0) === 100);
 
           return (
             <div key={day.dateISO}>
@@ -246,6 +248,17 @@ export default function WeekPlanEditor({
                   {isMobile ? "點選卡片可在下方抽屜中編輯。" : "可直接編輯表格中的任一列。"}
                 </Typography.Text>
               </Space>
+
+              <Checkbox
+                checked={dayDone}
+                disabled={!dayHasItems}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setDayItemsProgress(uid, day.dateISO, checked ? 100 : 0);
+                }}
+              >
+                完成
+              </Checkbox>
 
               {/* 新增表單：手機自動換行 */}
               <div style={{ marginTop: 12 }}>

@@ -33,13 +33,9 @@ export default function LoginPage() {
 
           {/* ===== Title Area ===== */}
           <div className="titleRow">
-            <span className="swordDivider" aria-hidden />
-            <span className="brandMark" title="劃山論健">
-              畫山論健
+            <span className="brandMark" title="我是什麼很健的人嗎?">
+              我是什麼很健的人嗎?
             </span>
-            <Typography.Title level={5} className="titleMain">
-              健身計畫週表
-            </Typography.Title>
           </div>
 
           <Typography.Paragraph type="secondary" style={{ margin: 0 }}>

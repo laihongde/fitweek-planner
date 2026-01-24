@@ -47,6 +47,11 @@ type PlannerState = {
     itemId: string,
     progress: number,
   ) => Promise<void>;
+  setDayItemsProgress: (
+    uid: string,
+    dayISO: string,
+    progress: number,
+  ) => Promise<void>;
 };
 
 function defaultYearMonth() {
@@ -174,6 +179,22 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     const it = day.items.find((x) => x.id === itemId);
     if (!it) return;
     it.progress = Math.max(0, Math.min(100, progress));
+
+    next.updatedAt = Date.now();
+    await upsertWeekPlan(next);
+    set({ activePlan: next });
+  },
+
+  setDayItemsProgress: async (_, dayISO, progress) => {
+    const plan = get().activePlan;
+    if (!plan) return;
+
+    const next = structuredClone(plan);
+    const day = next.days.find((d) => d.dateISO === dayISO);
+    if (!day) return;
+
+    const p = Math.max(0, Math.min(100, progress));
+    day.items = day.items.map((it) => ({ ...it, progress: p }));
 
     next.updatedAt = Date.now();
     await upsertWeekPlan(next);

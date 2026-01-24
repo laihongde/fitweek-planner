@@ -101,7 +101,7 @@ export default function PlannerPage() {
   };
 
   return (
-    <PageShell title="畫山論健">
+    <PageShell title="我是什麼很健的人嗎">
       {/* 手機：上方工具列 */}
       {isMobile && (
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
