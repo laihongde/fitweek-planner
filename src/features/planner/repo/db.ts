@@ -1,17 +1,25 @@
 import Dexie, { type Table } from "dexie";
-import type { WeekPlan } from "../types";
+import type { WeekPlan, ExerciseNameRecord } from "../types";
+
+const DB_NAME = import.meta.env.PROD
+  ? "fitweek_planner"
+  : "fitweek_planner_dev";
 
 export class FitWeekDB extends Dexie {
   weekPlans!: Table<WeekPlan, string>;
+  exerciseNames!: Table<ExerciseNameRecord, string>;
 
   constructor() {
-    super("fitweek_planner");
+    super(DB_NAME);
+
     this.version(1).stores({
-      // primary key: uid|weekKey
       weekPlans: "&pk, uid, weekKey, year, month, updatedAt",
     });
 
-    this.weekPlans.mapToClass(Object);
+    this.version(2).stores({
+      weekPlans: "&pk, uid, weekKey, year, month, updatedAt",
+      exerciseNames: "&pk, uid, nameNorm, count, lastUsedAt",
+    });
   }
 }
 

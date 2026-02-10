@@ -18,6 +18,7 @@ export type DayPlan = {
 };
 
 export type WeekPlan = {
+  pk: string; // `${uid}|${weekKey}`
   uid: string;
   weekKey: WeekKey;
   year: number;
@@ -27,4 +28,13 @@ export type WeekPlan = {
   endISO: string; // YYYY-MM-DD
   days: DayPlan[];
   updatedAt: number;
+};
+
+export type ExerciseNameRecord = {
+  pk: string;
+  uid: string;
+  name: string;
+  nameNorm: string;
+  count: number;
+  lastUsedAt: number;
 };

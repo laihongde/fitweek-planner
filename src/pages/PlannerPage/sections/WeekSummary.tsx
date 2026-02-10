@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Button, Card, Progress, Space, Typography } from "antd";
+import { Button, Card, Grid, Progress, Space, Typography } from "antd";
 import type { WeekPlan } from "../../../features/planner/types";
 import { calcWeekProgress } from "../../../features/planner/utils/progress";
 
@@ -12,14 +12,19 @@ export default function WeekSummary({
 }) {
   const pct = useMemo(() => calcWeekProgress(plan), [plan]);
 
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
+
   return (
     <Card
       size="small"
       title="本週概覽"
       extra={
-        <Button onClick={onOpenCopy} disabled={!plan}>
-          Copy to other weeks
-        </Button>
+        screens.md ? (
+          <Button onClick={onOpenCopy} disabled={!plan}>
+            Copy to other weeks
+          </Button>
+        ) : undefined
       }
     >
       {plan ? (

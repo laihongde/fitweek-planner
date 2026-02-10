@@ -6,7 +6,14 @@ export function cloneWeekForTarget(
   source: WeekPlan,
   targetMeta: Pick<
     WeekPlan,
-    "uid" | "weekKey" | "year" | "month" | "weekNumber" | "startISO" | "endISO"
+    | "pk"
+    | "uid"
+    | "weekKey"
+    | "year"
+    | "month"
+    | "weekNumber"
+    | "startISO"
+    | "endISO"
   >,
   opts: { mode: CopyMode; resetProgress: boolean },
 ): WeekPlan {

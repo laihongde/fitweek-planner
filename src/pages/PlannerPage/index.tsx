@@ -10,11 +10,13 @@ import { weeksInMonth } from "../../features/planner/date";
 import { upsertWeekPlan, getWeekPlan } from "../../features/planner/repo/plannerRepo";
 import type { CopyMode } from "../../features/planner/utils/copy";
 import { cloneWeekForTarget, mergeWeekPlans } from "../../features/planner/utils/copy";
+import { ensureExerciseSeed } from "../../features/planner/repo/exerciseRepo";
 
 import WeekSelector from "./sections/WeekSelector";
 import WeekSummary from "./sections/WeekSummary";
 import WeekPlanEditor from "./sections/WeekPlanEditor";
 import CopyWeekModal from "./sections/CopyWeekModal";
+import CopyDayModal from "./sections/CopyDayModal";
 
 const { Sider, Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -38,6 +40,8 @@ export default function PlannerPage() {
 
   const [copyOpen, setCopyOpen] = useState(false);
   const [weekDrawerOpen, setWeekDrawerOpen] = useState(false);
+  const [copyDayOpen, setCopyDayOpen] = useState(false);
+  const [copyDaySourceISO, setCopyDaySourceISO] = useState<string | null>(null);
 
   const weekOptions = useMemo(() => weeksInMonth(year, month), [year, month]);
 
@@ -56,6 +60,10 @@ export default function PlannerPage() {
     });
   }, [uid, selectedWeekKey, year, month, loadWeek]);
 
+  useEffect(() => {
+    ensureExerciseSeed(uid).catch(() => {});
+  }, [uid]);
+
   const onCopyWeeks = async (targetWeekKeys: string[], mode: CopyMode, resetProgress: boolean) => {
     if (!activePlan) return;
 
@@ -69,6 +77,7 @@ export default function PlannerPage() {
         const startMonth = dayjs(range.startISO).month() + 1;
 
         const targetMeta = {
+          pk: `${uid}|${wk}`,
           uid,
           weekKey: wk,
           year: range.year,
@@ -83,7 +92,8 @@ export default function PlannerPage() {
         if (mode === "overwrite") {
           await upsertWeekPlan(incoming);
         } else {
-          const ex = await getWeekPlan(uid, wk);
+          const weekPk = `${uid}|${wk}`;
+          const ex = await getWeekPlan(weekPk);
           if (ex) {
             const merged = mergeWeekPlans(ex, incoming, resetProgress);
             await upsertWeekPlan(merged);
@@ -104,7 +114,7 @@ export default function PlannerPage() {
     <PageShell title="我是什麼很健的人嗎">
       {/* 手機：上方工具列 */}
       {isMobile && (
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12, justifyContent: "space-between" }}>
           <Button icon={<MenuOutlined />} onClick={() => setWeekDrawerOpen(true)}>
             選擇週
           </Button>
@@ -132,7 +142,10 @@ export default function PlannerPage() {
         {/* 主內容 */}
         <Content style={{ background: "transparent", display: "flex", flexDirection: "column", gap: 16 }}>
           <WeekSummary plan={activePlan} onOpenCopy={() => setCopyOpen(true)} />
-          <WeekPlanEditor uid={uid} plan={activePlan} />
+          <WeekPlanEditor uid={uid} plan={activePlan} onOpenCopy={(sourceDayISO) => {
+            setCopyDaySourceISO(sourceDayISO);
+            setCopyDayOpen(true);
+          }} />
         </Content>
       </Layout>
 
@@ -164,6 +177,22 @@ export default function PlannerPage() {
         sourceWeekKey={activePlan?.weekKey ?? selectedWeekKey}
         weekOptions={weekOptions}
         onConfirm={onCopyWeeks}
+      />
+
+      <CopyDayModal
+        open={copyDayOpen}
+        onClose={() => setCopyDayOpen(false)}
+        sourceDayISO={copyDaySourceISO}
+        defaultTargetWeekKey={activePlan?.weekKey ?? selectedWeekKey}
+        weekOptions={weekOptions}
+        onConfirm={async ({ targetWeekKey, targetWeekday, mode, resetProgress }) => {
+          if (!copyDaySourceISO) return;
+          await usePlannerStore.getState().copyDayToDay(uid, copyDaySourceISO, targetWeekKey, targetWeekday, {
+            mode,
+            resetProgress,
+          });
+          setCopyDayOpen(false);
+        }}
       />
     </PageShell>
   );

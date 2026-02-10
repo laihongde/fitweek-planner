@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { WeekPlan, WeekKey, WorkoutItem } from "./types";
 import { getWeekPlan, upsertWeekPlan } from "./repo/plannerRepo";
 import { getWeekRangeFromWeekKey, isoWeekDates, weekKeyFromDate } from "./date";
+import { recordExerciseName } from "./repo/exerciseRepo";
 
 type PlannerState = {
   year: number;
@@ -52,7 +53,18 @@ type PlannerState = {
     dayISO: string,
     progress: number,
   ) => Promise<void>;
+  copyDayToDay: (
+    uid: string,
+    sourceDayISO: string,
+    targetWeekKey: string,
+    targetWeekDay: number,
+    opts: { mode: "overwrite" | "merge"; resetProgress: boolean },
+  ) => Promise<void>;
 };
+
+function makePk(uid: string, weekKey: string) {
+  return `${uid}|${weekKey}`;
+}
 
 function defaultYearMonth() {
   const now = dayjs();
@@ -72,7 +84,8 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
   setSelectedWeekKey: (wk) => set({ selectedWeekKey: wk }),
 
   loadWeek: async (uid, wk, year, month) => {
-    const existing = await getWeekPlan(uid, wk);
+    const planPk = makePk(uid, wk);
+    const existing = await getWeekPlan(planPk);
     if (existing) {
       set({ activePlan: existing });
       return;
@@ -91,6 +104,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     }));
 
     const plan: WeekPlan = {
+      pk: `${uid}|${wk}`,
       uid,
       weekKey: wk,
       year: meta.year,
@@ -128,9 +142,11 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
       note: payload.note ?? "",
       progress: 0,
     });
+    await recordExerciseName(plan.uid, name);
 
     next.updatedAt = Date.now();
     await upsertWeekPlan(next);
+
     set({ activePlan: next });
 
     return id;
@@ -199,5 +215,76 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     next.updatedAt = Date.now();
     await upsertWeekPlan(next);
     set({ activePlan: next });
+  },
+
+  copyDayToDay: async (
+    uid,
+    sourceDayISO,
+    targetWeekKey,
+    targetWeekday,
+    opts,
+  ) => {
+    const plan = get().activePlan;
+    if (!plan) return;
+
+    const sourceDay = plan.days.find((d) => d.dateISO === sourceDayISO);
+    if (!sourceDay) return;
+
+    // 1) 確保 target week plan 存在
+    const targetPk = makePk(uid, targetWeekKey);
+    let targetPlan = await getWeekPlan(targetPk);
+    if (!targetPlan) {
+      const meta = getWeekRangeFromWeekKey(targetWeekKey);
+      const startMonth = Number(meta.startISO.slice(5, 7)); // 01..12
+      const days = isoWeekDates(targetWeekKey).map((d) => ({
+        dateISO: d.dateISO,
+        weekday: d.weekday,
+        title: "",
+        items: [],
+      }));
+
+      targetPlan = {
+        pk: targetPk,
+        uid,
+        weekKey: targetWeekKey,
+        year: meta.year,
+        month: startMonth,
+        weekNumber: meta.weekNumber,
+        startISO: meta.startISO,
+        endISO: meta.endISO,
+        days,
+        updatedAt: Date.now(),
+      };
+    }
+
+    const nextTarget: WeekPlan = structuredClone(targetPlan);
+    const targetDay = nextTarget.days.find((d) => d.weekday === targetWeekday);
+    if (!targetDay) return;
+
+    const incomingItems = sourceDay.items.map((it) => ({
+      ...it,
+      progress: opts.resetProgress ? 0 : it.progress,
+    }));
+
+    if (opts.mode === "overwrite") {
+      targetDay.items = incomingItems;
+      targetDay.title = targetDay.title || sourceDay.title;
+    } else {
+      // merge: append items with new ids to avoid collisions
+      const { v4: uuidv4 } = await import("uuid");
+      const existingNames = new Set(targetDay.items.map((x) => x.name));
+      const toAppend = incomingItems
+        .filter((x) => !existingNames.has(x.name))
+        .map((x) => ({ ...x, id: uuidv4() }));
+      targetDay.items = [...targetDay.items, ...toAppend];
+    }
+
+    nextTarget.updatedAt = Date.now();
+    await upsertWeekPlan(nextTarget);
+
+    // 2) 如果複製到同一週，順便更新 activePlan 讓 UI 立即刷新
+    if (plan.weekKey === targetWeekKey) {
+      set({ activePlan: nextTarget });
+    }
   },
 }));

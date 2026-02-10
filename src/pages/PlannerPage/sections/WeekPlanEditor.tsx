@@ -20,17 +20,15 @@ import type { ProColumns } from "@ant-design/pro-components";
 import {
   EditableProTable,
   ProForm,
-  ProFormCheckbox,
   ProFormDigit,
   ProFormSlider,
   ProFormText,
-  ProFormTextArea,
 } from "@ant-design/pro-components";
 
 import type { WeekPlan, WorkoutItem } from "../../../features/planner/types";
 import { weekdayLabel } from "../../../features/planner/date";
 import { usePlannerStore } from "../../../features/planner/store";
-import { searchExerciseNames } from "../../../features/planner/exercises";
+import { searchExerciseNames } from "../../../features/planner/repo/exerciseRepo";
 
 type NewExercisePayload = {
   name: string;
@@ -49,14 +47,37 @@ type DrawerState = { open: false } | { open: true; dayISO: string; item: Workout
 export default function WeekPlanEditor({
   uid,
   plan,
+  onOpenCopy,
 }: {
   uid: string;
-  plan: WeekPlan | null;
+    plan: WeekPlan | null;
+  onOpenCopy: (sourceDayISO: string) => void;
 }) {
   const { addItem, updateItem, deleteItem, setItemProgress, setDayItemsProgress } = usePlannerStore();
   const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+
+  const [optionsByDay, setOptionsByDay] = useState<Record<string, string[]>>({});
+  const [searchTimerByDay, setSearchTimerByDay] = useState<Record<string, number>>({});
+
+  const runExerciseSearch = (dayISO: string, q: string) => {
+  // clear previous timer
+  const prevTimer = searchTimerByDay[dayISO];
+  if (prevTimer) window.clearTimeout(prevTimer);
+
+  const timer = window.setTimeout(async () => {
+    try {
+      const res = await searchExerciseNames(uid, q, 8); // ✅ uid + query
+      setOptionsByDay((p) => ({ ...p, [dayISO]: res }));
+    } catch {
+      setOptionsByDay((p) => ({ ...p, [dayISO]: [] }));
+    }
+  }, 150);
+
+  setSearchTimerByDay((p) => ({ ...p, [dayISO]: timer }));
+};
+
 
   // 每天一份新增草稿
   const [draftByDay, setDraftByDay] = useState<Record<string, NewExercisePayload>>({});
@@ -254,7 +275,8 @@ export default function WeekPlanEditor({
                       }}
                     >
                       全部完成
-                    </Checkbox>
+                  </Checkbox>
+                  <Button onClick={()=> onOpenCopy(day.dateISO)}>複製本日</Button>
                   </Space>
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                   {isMobile ? "點選卡片可在下方抽屜中編輯。" : "可直接編輯表格中的任一列。"}
@@ -267,11 +289,15 @@ export default function WeekPlanEditor({
                   <AutoComplete
                     style={{ width: 260, maxWidth: "100%" }}
                     value={draft.name}
-                    options={searchExerciseNames(draft.name).map((name) => ({
+                    options={(optionsByDay[day.dateISO] ?? []).map((name) => ({
                       value: name,
                       label: name,
                     }))}
-                    onChange={(v) => setDraft(day.dateISO, { name: v })}
+                    onSearch={(q) => runExerciseSearch(day.dateISO, q)}
+                    onChange={(v) => {
+                      setDraft(day.dateISO, { name: v });
+                      runExerciseSearch(day.dateISO, v);
+                    }}
                     onSelect={(v) => setDraft(day.dateISO, { name: v })}
                   >
                     <Input
@@ -280,6 +306,7 @@ export default function WeekPlanEditor({
                       allowClear
                     />
                   </AutoComplete>
+
 
                   <InputNumber
                     className="mobile-full"
@@ -429,19 +456,17 @@ export default function WeekPlanEditor({
               />
             </Space>
 
-            <ProFormTextArea name="note" label="備註" placeholder="選填" />
-
-            <ProFormCheckbox
-              name="__done"
-              label=""
-              fieldProps={{
-                checked: drawer.item.progress === 100,
-                onChange: (e) => {
+            <Form.Item label="完成狀態">
+              <Checkbox
+                checked={drawerForm.getFieldValue("progress") === 100}
+                onChange={(e) => {
                   const checked = e.target.checked;
                   const next = checked ? 100 : 0;
 
+                  // 同步到表單
                   drawerForm.setFieldsValue({ progress: next });
 
+                  // 同步到 drawer 狀態（讓 UI 立即反映）
                   setDrawer((d) =>
                     d.open
                       ? {
@@ -450,11 +475,12 @@ export default function WeekPlanEditor({
                         }
                       : d
                   );
-                },
-              }}
-            >
-              完成
-            </ProFormCheckbox>
+                }}
+              >
+                完成（100%）
+              </Checkbox>
+            </Form.Item>
+
             <Form.Item shouldUpdate noStyle>
               {() => {
                 const progress = Number(drawerForm.getFieldValue("progress") ?? 0);

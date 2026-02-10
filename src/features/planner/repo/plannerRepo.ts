@@ -1,21 +1,16 @@
 import { db } from "./db";
 import type { WeekPlan } from "../types";
 
-function pk(uid: string, weekKey: string) {
-  return `${uid}|${weekKey}`;
-}
-
-export async function getWeekPlan(uid: string, weekKey: string) {
-  return db.weekPlans.get(pk(uid, weekKey));
+export async function getWeekPlan(pk: string) {
+  return db.weekPlans.get(pk);
 }
 
 export async function upsertWeekPlan(plan: WeekPlan) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await db.weekPlans.put({ ...(plan as any), pk: pk(plan.uid, plan.weekKey) });
+  await db.weekPlans.put(plan);
 }
 
-export async function deleteWeekPlan(uid: string, weekKey: string) {
-  await db.weekPlans.delete(pk(uid, weekKey));
+export async function deleteWeekPlan(pk: string) {
+  await db.weekPlans.delete(pk);
 }
 
 export async function listWeekPlansInMonth(
